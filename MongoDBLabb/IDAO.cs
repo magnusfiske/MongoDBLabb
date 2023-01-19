@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MongoDB.Driver;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,8 +14,8 @@ namespace MongoDBLabb
         Book ReadOne(string title);
         Book ReadOneById(Book book);
         public Book ReadLatest();
-        void UpdateStock(Book objectToUpdate, int newStock);
+        UpdateResult UpdateStock(Book objectToUpdate, int newStock);
         void Delete(Book book);
-        public void Search(string searchValue);
+        public List<Book> Search(string searchValue);
     }
 }

@@ -10,11 +10,6 @@ namespace MongoDBLabb
 {
     internal class Book
     {
-        //private readonly ObjectId id;
-        //private readonly string title;
-        //private readonly string author;
-        //private readonly int stock;
-
         public Book(string title, string author, int stock)
         {
             id = new ObjectId();
@@ -34,7 +29,7 @@ namespace MongoDBLabb
 
         public override string ToString()
         {
-            return $"Title: {title}\nAuthor: {author}\nStock: {stock}";
+            return $"\nTitle: {title}\nAuthor: {author}\nStock: {stock}\n---------------";
         }
     }
 }

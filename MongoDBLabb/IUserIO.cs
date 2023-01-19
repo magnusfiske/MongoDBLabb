@@ -11,5 +11,6 @@ namespace MongoDBLabb
         string Input();
         void Output(string output);
         void Exit();
+        void Clear();
     }
 }

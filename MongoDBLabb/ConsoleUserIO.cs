@@ -33,5 +33,10 @@ namespace MongoDBLabb
         {
             Environment.Exit(0);
         }
+
+        public void Clear()
+        {
+            Console.Clear();
+        }
     }
 }

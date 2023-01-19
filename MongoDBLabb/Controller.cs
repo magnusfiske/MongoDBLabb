@@ -24,7 +24,8 @@ namespace MongoDBLabb
 
             while (isOn)
             {
-                io.Output("Välj vad du vill göra genom att ange en bokstav:\nc - create\nr - read\nu - update\nd - delete\ne - exit program");
+                io.Output("----------------------------\nVälj vad du vill göra genom att ange en bokstav:" +
+                    "\nc - create\nr - read\nu - update\nd - delete\ne - exit program\nx - clear window\n");
                 string input = io.Input();
                 switch (input)
                 {
@@ -32,7 +33,7 @@ namespace MongoDBLabb
                         AddProduct();
                         break;
                     case "r":
-                        Search();//GetProducts();
+                        Read();
                         break;
                     case "u":
                         UpdateProduct();
@@ -43,6 +44,9 @@ namespace MongoDBLabb
                     case "e":
                         io.Exit();
                         break;
+                    case "x":
+                        io.Clear();
+                        break;
                     default:
                         io.Output("Felaktig inmatning, försök igen");
                         break;
@@ -50,7 +54,42 @@ namespace MongoDBLabb
             }
         }
 
-        public void AddProduct()
+        private void Read()
+        {
+            bool isOn = true;
+            do
+            {
+                io.Output("Välj hur du vill läsa genom att ange en bokstav:\na - hämta alla poster\n" +
+                    "b - hämta en specifik titel\nc - sök på författare");
+                try
+                {
+                    string input = io.Input().ToLower();
+                    isOn = false;
+                    switch (input)
+                    {
+                        case "a":
+                            GetAllProducts();
+                            break;
+                        case "b":
+                            GetOneProduct();
+                            break;
+                        case "c":
+                            Search();
+                            break;
+                        default:
+                            io.Output("Felaktig inmatning, försök igen");
+                            isOn = true;
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    io.Output(ex.Message);
+                }
+            } while (isOn);
+        }
+
+        private void AddProduct()
         {
             string title;
             string author;
@@ -78,7 +117,7 @@ namespace MongoDBLabb
                 io.Output("Något gick fel, produkten kunde inte sparas i databasen.");
         }
 
-        public void GetProducts()
+        private void GetAllProducts()
         {
             var products = db.ReadAll();
 
@@ -88,12 +127,34 @@ namespace MongoDBLabb
             }
         }
 
-       public void Search()
+        private void GetOneProduct()
         {
-            db.Search(io.Input());
+            io.Output("Ange titeln på den produkt du vill hämta");
+            string title = io.Input();
+            var result = db.ReadOne(title);
+            if (result is null)
+                io.Output("Ingen matchande titel i batabasen");
+            else
+                io.Output(result.ToString());
+            
         }
 
-        public void UpdateProduct()
+       private void Search()
+        {
+            io.Output("Ange söksträng:");
+            var result = db.Search(io.Input());
+            if (result is null)
+                io.Output("Ingen matchande produkt i databasen");
+            else
+            {
+                foreach (Book book in result)
+                {
+                    io.Output(book.ToString());
+                }
+            }
+        }
+
+        private void UpdateProduct()
         {
             io.Output("Ange titeln för produkten du vill uppdatera");
             string title = io.Input();
@@ -108,25 +169,58 @@ namespace MongoDBLabb
             var bookToUpdate = db.ReadOne(title);
 
             int newStock = bookToUpdate.stock + addedStock;
-
-            db.UpdateStock(bookToUpdate, bookToUpdate.stock + addedStock);
-
+            try
+            {
+                var result = db.UpdateStock(bookToUpdate, bookToUpdate.stock + addedStock);
+                if (result is null)
+                    io.Output("Något gick fel");
+                else
+                    io.Output("Produkten uppdaterad:\n" + db.ReadOne(title).ToString());
+            }
+            catch (Exception ex)
+            {
+                io.Output(ex.Message);
+            }
         }
 
-        public void DeleteProduct()
+        private void DeleteProduct()
         {
-            io.Output("Ange titeln för produkten du vill ta bort:");
-            string title = io.Input();
-            var bookToUpdate = db.ReadOne(title);
-            io.Output("Är du säker på att du vill ta bort:");
-            io.Output(bookToUpdate.ToString());
-            io.Output("Åtgärden går inte att ångra. (j/n)");
-            if (io.Input() == "j")
+            bool isOn = true;
+            while (isOn)
             {
-                db.Delete(bookToUpdate);
-                io.Output("Produkten raderad!");
-            }
+                io.Output("Ange titeln för produkten du vill ta bort:");
+                string title = io.Input();
 
+                try
+                {
+                    var bookToDelete = db.ReadOne(title);
+                    if (bookToDelete is null)
+                        io.Output("Ingen matchande produkt i databasen");
+                    else
+                    {
+                        io.Output("Är du säker på att du vill ta bort:");
+                        io.Output(bookToDelete.ToString());
+                        io.Output("Åtgärden går inte att ångra. (j/n)");
+                        bool isValid = false;
+                        while (!isValid)
+                        if (io.Input() == "j")
+                        {
+                            isValid = true;
+                            db.Delete(bookToDelete);
+                            io.Output("Produkten raderad!");
+                            isOn = false;
+                        }
+                        else if (io.Input() != "n")
+                        {
+                            io.Output("Felaktig inmatning");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    io.Output(ex.Message);
+                }
+            }
         }
     }
 }
